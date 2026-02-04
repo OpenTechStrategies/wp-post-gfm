@@ -6,6 +6,12 @@ branding:
   color: 'blue'
  
 inputs:
+  wp_app_password:
+    required: true
+  wp_username:
+    required: true
+  wp_url:
+    required: true
   directory:
     required: true
   force_publish:
@@ -29,9 +35,9 @@ runs:
     - name: Publish to WordPress
       shell: bash
       env:
-        WORDPRESS_URL: ${{ secrets.WORDPRESS_URL }}
-        WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
-        WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
+        WORDPRESS_URL: ${{ inputs.wp_url }}
+        WORDPRESS_USERNAME: ${{ inputs.wp_username }}
+        WORDPRESS_APP_PASSWORD: ${{ inputs_wp_app_password }}
         POSTS_DIR: ${{ inputs.directory }}
 		run: node publish-to-wordpress.js
       working-directory: ${{ github.action_path }}/scripts
