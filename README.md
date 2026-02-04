@@ -1,10 +1,26 @@
+**NOTE: This repo was created with assistance from Claude AI.** 
+
 # WordPress Publishing GitHub Action
 
 This GitHub Action automatically publishes Markdown files from your repository to WordPress using the WordPress REST API. Posts are automatically categorized based on their directory structure.
 
+## Two Ways to Use This
+
+### Option 1: Direct Installation (Simple)
+Copy all files directly into your content repository. Best for single-use or testing.
+
+### Option 2: Reusable Workflow (Recommended)
+Set up once in a separate repository and reference it from multiple content repositories. Best for maintaining multiple blogs or team workflows.
+
+**For reusable setup instructions, see [SETUP-REUSABLE.md](SETUP-REUSABLE.md)**
+
+---
+
+## Direct Installation (Option 1)
+
 ## Features
 
-- Preserves Markdown formatting using Gutenberg Markdown blocks, 
+- Preserves Markdown formatting using Gutenberg Markdown blocks
 - Automatically uploads and embeds images from local files
 - Creates WordPress categories based on file path
 - Updates existing posts or creates new ones
@@ -37,7 +53,7 @@ Add these secrets to your GitHub repository:
 
 ### 3. Repository Structure
 
-Create a `docs` directory in your repository:
+Create a `posts` directory in your repository:
 
 ```
 your-repo/
@@ -46,15 +62,15 @@ your-repo/
 │   │   └── publish-to-wordpress.yml
 │   └── scripts/
 │       └── publish-to-wordpress.js
-├── docs/
-│   ├── tech/
-│   │   ├── cool/
-│   │   │   ├── my-article.md
+├── posts/
+│   ├── climate/
+│   │   ├── adaptation/
+│   │   │   ├── my-climate-article.md
 │   │   │   └── images/
 │   │   │       └── diagram.png
-│   │   └── web-development.md
-│   └── lifestyle/
-│       └── relaxation-tips.md
+│   │   └── renewable-energy.md
+│   └── policy/
+│       └── carbon-pricing.md
 ├── images/
 │   └── header-image.jpg
 └── package.json
@@ -82,9 +98,9 @@ Add a `package.json` to your repository root:
 
 The action automatically creates categories based on your file path:
 
-- `docs/tech/cool/article.md` → Categories: `tech`, `cool`
-- `docs/lifestyle/sleeping.md` → Category: `lifestyle`
-- `docs/tutorial.md` → No automatic category (root level)
+- `posts/climate/adaptation/article.md` → Categories: `climate`, `adaptation`
+- `posts/policy/emissions.md` → Category: `policy`
+- `posts/tutorial.md` → No automatic category (root level)
 
 ### Image Handling
 
@@ -159,6 +175,51 @@ The action runs automatically when:
 2. **Manual trigger**: Go to Actions → Publish to WordPress → Run workflow
 
 To force republish all posts, use the manual trigger with `force_publish` set to `true`.
+
+## Example Markdown File
+
+```markdown
+---
+title: "Understanding Climate Adaptation Strategies"
+slug: "climate-adaptation-strategies"
+status: "publish"
+excerpt: "Learn about effective climate adaptation strategies for communities"
+featured_image: "./images/climate-header.jpg"
+categories:
+  - "guides"
+---
+
+# Understanding Climate Adaptation Strategies
+
+Welcome to this comprehensive guide on climate adaptation...
+
+![Climate Impact Diagram](./images/climate-impacts.png)
+
+## What is Climate Adaptation?
+
+Climate adaptation involves adjusting to actual or expected climate change effects...
+
+## Key Strategies
+
+Before we begin, communities need:
+
+- Climate risk assessments
+- Local stakeholder engagement
+- Long-term planning frameworks
+
+## Step 1: Assessing Vulnerability
+
+First, let's identify vulnerable systems...
+
+![Vulnerability Assessment](./images/vulnerability-map.png)
+```
+
+This file at `posts/climate/adaptation/getting-started.md` would be:
+- Published with title "Understanding Climate Adaptation Strategies"
+- Assigned to categories: `climate`, `adaptation`, `guides`
+- Featured image uploaded from `./images/climate-header.jpg`
+- All inline images uploaded and URLs updated
+- Published immediately (status: `publish`)
 
 ## Workflow Customization
 
@@ -257,4 +318,4 @@ Feel free to modify and extend this action for your needs!
 
 ## License
 
-GAPL-3.0
+MIT License - feel free to use and modify as needed.
