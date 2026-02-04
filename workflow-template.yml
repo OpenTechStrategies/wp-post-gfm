@@ -17,7 +17,7 @@ on:
 
 jobs:
   publish:
-    uses: YOUR_USERNAME/wordpress-publisher/.github/workflows/publish-from-another-repo.yml@main
+    uses: OpenTechStrategies/wp-post-gfm/.github/workflows/wp-post-gfm.yml@main
     with:
       posts_directory: 'posts'  # Change to your posts directory
       force_publish: ${{ github.event.inputs.force_publish || false }}

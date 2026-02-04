@@ -26,7 +26,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       
       - name: Install dependencies
         run: |
@@ -38,4 +38,4 @@ jobs:
           WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
           WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
           FORCE_PUBLISH: ${{ github.event.inputs.force_publish }}
-        run: node .github/scripts/publish-to-wordpress.js
+        run: node scripts/publish-to-wordpress.js
