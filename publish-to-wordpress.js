@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const axios = require('axios');
 const matter = require('gray-matter');
+const FormData = require('form-data');
 
 // Configuration
 const WORDPRESS_URL = process.env.WORDPRESS_URL;
@@ -24,6 +25,96 @@ const wpClient = axios.create({
 
 // Cache for category mapping
 let categoryCache = {};
+// Cache for uploaded images (to avoid re-uploading the same image)
+let imageCache = {};
+// Cache for media IDs
+let imageCacheIds = {};
+
+/**
+ * Upload an image to WordPress media library
+ */
+async function uploadImage(imagePath, baseDir) {
+  const resolvedPath = path.isAbsolute(imagePath) 
+    ? imagePath 
+    : path.resolve(path.dirname(baseDir), imagePath);
+  
+  // Check cache first
+  if (imageCache[resolvedPath]) {
+    console.log(`  Using cached image: ${imagePath}`);
+    return imageCache[resolvedPath];
+  }
+
+  try {
+    const imageBuffer = await fs.readFile(resolvedPath);
+    const fileName = path.basename(resolvedPath);
+    
+    const formData = new FormData();
+    formData.append('file', imageBuffer, fileName);
+    
+    const response = await axios.post(
+      `${WORDPRESS_URL}/wp-json/wp/v2/media`,
+      formData,
+      {
+        auth: {
+          username: USERNAME,
+          password: APP_PASSWORD
+        },
+        headers: {
+          ...formData.getHeaders()
+        }
+      }
+    );
+    
+    const imageUrl = response.data.source_url;
+    const mediaId = response.data.id;
+    
+    imageCache[resolvedPath] = imageUrl;
+    imageCacheIds[resolvedPath] = mediaId;
+    
+    console.log(`  Uploaded image: ${fileName} -> ${imageUrl}`);
+    
+    return imageUrl;
+  } catch (error) {
+    console.error(`  Error uploading image ${imagePath}:`, error.response?.data || error.message);
+    // Return original path if upload fails
+    return imagePath;
+  }
+}
+
+/**
+ * Process images in Markdown content
+ * Finds image references, uploads them to WordPress, and updates the URLs
+ */
+async function processImages(content, markdownFilePath) {
+  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  let match;
+  const replacements = [];
+  
+  while ((match = imageRegex.exec(content)) !== null) {
+    const [fullMatch, altText, imagePath] = match;
+    
+    // Skip if it's already a full URL
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      continue;
+    }
+    
+    replacements.push({
+      original: fullMatch,
+      altText,
+      imagePath
+    });
+  }
+  
+  // Upload images and build replacements
+  let updatedContent = content;
+  for (const replacement of replacements) {
+    const uploadedUrl = await uploadImage(replacement.imagePath, markdownFilePath);
+    const newMarkdown = `![${replacement.altText}](${uploadedUrl})`;
+    updatedContent = updatedContent.replace(replacement.original, newMarkdown);
+  }
+  
+  return updatedContent;
+}
 
 /**
  * Get or create a WordPress category by slug
@@ -97,9 +188,13 @@ async function processMarkdownFile(filePath) {
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const { data: frontmatter, content } = matter(fileContent);
     
+    // Process images in the Markdown content
+    console.log(`  Processing images...`);
+    const processedContent = await processImages(content, filePath);
+    
     // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
     const gutenbergContent = `<!-- wp:markdown -->
-${content.trim()}
+${processedContent.trim()}
 <!-- /wp:markdown -->`;
     
     // Get post slug from frontmatter or filename
@@ -126,6 +221,36 @@ ${content.trim()}
       excerpt: frontmatter.excerpt || '',
       date: frontmatter.date || new Date().toISOString()
     };
+    
+    // Handle featured image if specified in frontmatter
+    if (frontmatter.featured_image) {
+      console.log(`  Processing featured image...`);
+      try {
+        let featuredImageUrl;
+        
+        // If it's a URL, use it directly to get the media ID
+        if (frontmatter.featured_image.startsWith('http://') || frontmatter.featured_image.startsWith('https://')) {
+          featuredImageUrl = frontmatter.featured_image;
+        } else {
+          // Upload the local image
+          featuredImageUrl = await uploadImage(frontmatter.featured_image, filePath);
+        }
+        
+        // Get the media ID from the URL (if we uploaded it, it's in the cache response)
+        if (imageCache[path.resolve(path.dirname(filePath), frontmatter.featured_image)]) {
+          // We need to get the media ID - upload function should return full response
+          const imagePath = path.isAbsolute(frontmatter.featured_image)
+            ? frontmatter.featured_image
+            : path.resolve(path.dirname(filePath), frontmatter.featured_image);
+          
+          if (imageCacheIds[imagePath]) {
+            postData.featured_media = imageCacheIds[imagePath];
+          }
+        }
+      } catch (error) {
+        console.error(`  Error setting featured image:`, error.message);
+      }
+    }
     
     // Check if post already exists
     const existingPost = await findPostBySlug(slug);

@@ -4,12 +4,13 @@ This GitHub Action automatically publishes Markdown files from your repository t
 
 ## Features
 
-- 📝 Preserves Markdown formatting using Gutenberg Markdown blocks
-- 📁 Creates WordPress categories based on file path
-- 🔄 Updates existing posts or creates new ones
-- 🏷️ Supports frontmatter for metadata (title, status, etc.)
-- ⚡ Only processes changed files (unless forced)
-- 🎯 Manual trigger option to republish all posts
+- Preserves Markdown formatting using Gutenberg Markdown blocks, 
+- Automatically uploads and embeds images from local files
+- Creates WordPress categories based on file path
+- Updates existing posts or creates new ones
+- Supports frontmatter for metadata (title, status, featured images, etc.)
+- Only processes changed files (unless forced)
+- Manual trigger option to republish all posts
 
 ## Setup
 
@@ -36,7 +37,7 @@ Add these secrets to your GitHub repository:
 
 ### 3. Repository Structure
 
-Create a `posts` directory in your repository:
+Create a `docs` directory in your repository:
 
 ```
 your-repo/
@@ -45,13 +46,17 @@ your-repo/
 │   │   └── publish-to-wordpress.yml
 │   └── scripts/
 │       └── publish-to-wordpress.js
-├── posts/
+├── docs/
 │   ├── tech/
-│   │   ├── ai/
-│   │   │   └── my-ai-article.md
+│   │   ├── cool/
+│   │   │   ├── my-article.md
+│   │   │   └── images/
+│   │   │       └── diagram.png
 │   │   └── web-development.md
 │   └── lifestyle/
-│       └── productivity-tips.md
+│       └── relaxation-tips.md
+├── images/
+│   └── header-image.jpg
 └── package.json
 ```
 
@@ -77,9 +82,44 @@ Add a `package.json` to your repository root:
 
 The action automatically creates categories based on your file path:
 
-- `posts/tech/ai/article.md` → Categories: `tech`, `ai`
-- `posts/lifestyle/fitness.md` → Category: `lifestyle`
-- `posts/tutorial.md` → No automatic category (root level)
+- `docs/tech/cool/article.md` → Categories: `tech`, `cool`
+- `docs/lifestyle/sleeping.md` → Category: `lifestyle`
+- `docs/tutorial.md` → No automatic category (root level)
+
+### Image Handling
+
+The action automatically handles images in your Markdown posts:
+
+**Inline Images in Markdown:**
+
+```markdown
+![Alt text](./images/diagram.png)
+![Screenshot](../screenshots/demo.jpg)
+```
+
+The script will:
+1. Find all image references in your Markdown
+2. Upload them to your WordPress media library
+3. Update the Markdown to use the WordPress-hosted URLs
+4. Cache uploaded images to avoid duplicates
+
+**Image Path Options:**
+- Relative paths: `./images/photo.jpg` or `../images/photo.jpg`
+- Absolute paths: `/images/photo.jpg`
+- URLs are left unchanged: `https://example.com/image.jpg`
+
+**Featured Images:**
+
+Set a featured image in frontmatter:
+
+```markdown
+---
+title: "My Post"
+featured_image: "./images/header.jpg"
+---
+```
+
+The image will be uploaded and set as the post's featured image in WordPress.
 
 ### Markdown Frontmatter
 
@@ -109,6 +149,7 @@ This is the body of your blog post...
 - `excerpt`: Short description
 - `date`: Publication date (ISO 8601 format)
 - `categories`: Additional categories (array)
+- `featured_image`: Path to featured image file (relative or absolute)
 
 ### Triggering the Action
 
@@ -118,40 +159,6 @@ The action runs automatically when:
 2. **Manual trigger**: Go to Actions → Publish to WordPress → Run workflow
 
 To force republish all posts, use the manual trigger with `force_publish` set to `true`.
-
-## Example Markdown File
-
-```markdown
----
-title: "Getting Started with AI Development"
-slug: "getting-started-ai-development"
-status: "publish"
-excerpt: "Learn the basics of AI development in this comprehensive guide"
-categories:
-  - "tutorials"
----
-
-# Getting Started with AI Development
-
-Welcome to this comprehensive guide on AI development...
-
-## Prerequisites
-
-Before we begin, you'll need:
-
-- Python 3.8 or higher
-- Basic programming knowledge
-- A curious mind!
-
-## Step 1: Setting Up Your Environment
-
-First, let's install the necessary packages...
-```
-
-This file at `posts/tech/ai/getting-started.md` would be:
-- Published with title "Getting Started with AI Development"
-- Assigned to categories: `tech`, `ai`, `tutorials`
-- Published immediately (status: `publish`)
 
 ## Workflow Customization
 
@@ -250,4 +257,4 @@ Feel free to modify and extend this action for your needs!
 
 ## License
 
-MIT License - feel free to use and modify as needed.
+GAPL-3.0

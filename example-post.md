@@ -24,4 +24,6 @@ There are three main types:
 2. **Unsupervised Learning** - You don't know you're being watched
 3. **Reinforcement Learning** - Learning through trial and error
 
+![Training Process](./images/training-process.png)
+
 *This post was automatically published from a Markdown file using GitHub Actions.*
