@@ -12,7 +12,7 @@ Copy all files directly into your content repository. Best for single-use or tes
 ### Option 2: Reusable Workflow (Recommended)
 Set up once in a separate repository and reference it from multiple content repositories. Best for maintaining multiple blogs or team workflows.
 
-**For reusable setup instructions, see [SETUP-REUSABLE.md](SETUP-REUSABLE.md)**
+**For reusable setup instructions, see [setup-reusable.md](setup-reusable.md)**
 
 ---
 
@@ -82,7 +82,7 @@ Add a `package.json` to your repository root:
 
 ```json
 {
-  "name": "wordpress-publisher",
+  "name": "wp-post-gfm",
   "version": "1.0.0",
   "dependencies": {
     "axios": "^1.6.0",

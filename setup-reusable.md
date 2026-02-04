@@ -25,38 +25,7 @@ my-climate-blog/              # Your content repository
 ### Step 1: Set Up Your Content Repository
 
 1. In your content repository, create `.github/workflows/publish.yml`
-2. Use this template:
-
-```yaml
-name: Publish to WordPress
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'posts/**/*.md'
-  workflow_dispatch:
-    inputs:
-      force_publish:
-        description: 'Force republish all posts'
-        required: false
-        type: boolean
-        default: false
-
-jobs:
-  publish:
-    uses: OpenTechStrategies/wp-post-gfm/.github/workflows/wp-post-gfm.yml@main
-    with:
-      posts_directory: 'posts'  # Your posts directory
-      force_publish: ${{ github.event.inputs.force_publish || false }}
-    secrets:
-      WORDPRESS_URL: ${{ secrets.WORDPRESS_URL }}
-      WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
-      WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
-```
-
-Change your posts directory as needed.
+2. Use the workflow template provided, change your posts directory as needed.
 
 ### Step 2: Add Secrets to Content Repository
 

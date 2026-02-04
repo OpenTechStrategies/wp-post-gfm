@@ -1,0 +1,10 @@
+{
+  "name": "wp-post-gfm",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^1.6.0",
+    "form-data": "^4.0.0",
+    "gray-matter": "^4.0.3"
+  }
+}
