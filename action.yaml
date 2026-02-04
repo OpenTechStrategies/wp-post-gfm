@@ -17,7 +17,7 @@ inputs:
   force_publish:
     description: 'Force republish all posts'
     required: false
-	default: 'true'
+    default: 'true'
 
 runs:
   using: composite
@@ -39,5 +39,5 @@ runs:
         WORDPRESS_USERNAME: ${{ inputs.wp_username }}
         WORDPRESS_APP_PASSWORD: ${{ inputs_wp_app_password }}
         POSTS_DIR: ${{ inputs.directory }}
-		run: node publish-to-wordpress.js
+        run: node publish-to-wordpress.js
       working-directory: ${{ github.action_path }}/scripts
