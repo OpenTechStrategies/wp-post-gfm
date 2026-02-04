@@ -1,0 +1,37 @@
+name: 'Post to WordPress'
+description: 'Publish GFM Markdown files to WordPress'
+
+inputs:
+  wp_app_password:
+    required: true
+  wp_username:
+    required: true
+  wp_url:
+    required: true
+  directory:
+    required: true
+  force_publish:
+    description: 'Force republish all posts'
+    required: false
+    default: 'true'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      shell: bash
+      run: npm ci
+      working-directory: ${{ github.action_path }}
+      with:
+        node-version: 24
+    
+    - name: Publish to WordPress
+      shell: bash
+      env:
+        WORDPRESS_URL: ${{ inputs.wp_url }}
+        WORDPRESS_USERNAME: ${{ inputs.wp_username }}
+        WORDPRESS_APP_PASSWORD: ${{ inputs_wp_app_password }}
+        POSTS_DIR: ${{ inputs.directory }}
+        run: node publish-to-wordpress.js
+      working-directory: ${{ github.action_path }}/scripts

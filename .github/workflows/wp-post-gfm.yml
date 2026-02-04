@@ -1,0 +1,53 @@
+name: Reusable WordPress Publisher
+
+on:
+  workflow_call:
+    inputs:
+      posts_directory:
+        description: 'Directory containing markdown posts'
+        required: false
+        type: string
+        default: 'posts'
+      force_publish:
+        description: 'Force republish all posts'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      WORDPRESS_URL:
+        required: true
+      WORDPRESS_USERNAME:
+        required: true
+      WORDPRESS_APP_PASSWORD:
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout calling repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Checkout publisher repository
+        uses: actions/checkout@v4
+        with:
+          repository: OpenTechStrategies/wp-post-gfm
+          path: wp-post-gfm
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm ci
+      
+      - name: Publish to WordPress
+        env:
+          WORDPRESS_URL: ${{ secrets.WORDPRESS_URL }}
+          WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
+          WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
+          POSTS_DIR: ${{ inputs.posts_directory }}
+          FORCE_PUBLISH: ${{ inputs.force_publish }}
+        run: node wp-post-gfm/scripts/publish-to-wordpress.js
