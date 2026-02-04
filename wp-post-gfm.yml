@@ -34,8 +34,8 @@ jobs:
       - name: Checkout publisher repository
         uses: actions/checkout@v4
         with:
-          repository: YOUR_USERNAME/wordpress-publisher
-          path: .wordpress-publisher
+          repository: OpenTechStrategies/wp-post-gfm
+          path: .wp-post-gfm
           sparse-checkout: |
             .github/scripts/publish-to-wordpress.js
           sparse-checkout-cone-mode: false
@@ -56,4 +56,4 @@ jobs:
           WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
           POSTS_DIR: ${{ inputs.posts_directory }}
           FORCE_PUBLISH: ${{ inputs.force_publish }}
-        run: node .wordpress-publisher/.github/scripts/publish-to-wordpress.js
+        run: node .wp-post-gfm/.github/scripts/publish-to-wordpress.js
