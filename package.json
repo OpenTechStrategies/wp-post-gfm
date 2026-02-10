@@ -21,6 +21,7 @@
   "dependencies": {
     "@actions/core": "^3.0.0",
     "@actions/github": "^9.0.0",
+    "@rollup/plugin-json": "^6.1.0",
     "axios": "^1.13.5",
     "form-data": "^4.0.5",
     "formdata": "^0.10.4",

@@ -1,6 +1,12 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+let WORDPRESS_URL;
+let USERNAME;
+let APP_PASSWORD;
+let POSTS_DIR;
+let FORCE_PUBLISH;
+
 try {
   const WORDPRESS_URL = core.getInput('wp_url');
   const USERNAME = core.getInput('wp_username');
