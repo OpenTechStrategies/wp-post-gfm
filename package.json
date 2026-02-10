@@ -1,10 +1,34 @@
 {
   "name": "wp-post-gfm",
   "version": "1.0.0",
-  "private": true,
+  "description": "",
+  "main": "publish-to-wordpress.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenTechStrategies/wp-post-gfm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/OpenTechStrategies/wp-post-gfm/issues"
+  },
+  "homepage": "https://github.com/OpenTechStrategies/wp-post-gfm#readme",
   "dependencies": {
-    "axios": "^1.6.0",
-    "form-data": "^4.0.0",
+    "@actions/core": "^3.0.0",
+    "@actions/github": "^9.0.0",
+    "axios": "^1.13.5",
+    "form-data": "^4.0.5",
+    "formdata": "^0.10.4",
     "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "rollup": "^4.57.1"
   }
 }
