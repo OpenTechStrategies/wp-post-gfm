@@ -5,6 +5,7 @@ import path from 'path';
 import axios from 'axios';
 import matter from 'gray-matter';
 import FormData from 'form-data';
+import MarkdownIt from 'markdown-it';
 
 const POSTS_DIR = core.getInput('directory');
 const FORCE_PUBLISH = core.getInput('force_publish');
@@ -117,6 +118,35 @@ async function processImages(content, markdownFilePath) {
   return updatedContent;
 }
 
+function createGutenbergMarkdownBlock(markdownContent) {
+
+  // Initialize markdown-it with GFM-like options
+  const md = new MarkdownIt({
+    html: true,        // Enable HTML tags in source
+    linkify: true,     // Autoconvert URL-like text to links
+    typographer: true, // Enable smartquotes and other typographic replacements
+    breaks: true       // Convert \n in paragraphs into <br> (GFM-style)
+  });
+  
+  // Render markdown to HTML
+  const htmlContent = md.render(markdownContent);
+  
+  // Create the block attributes object
+  const attributes = {
+    content: markdownContent,
+    HTML: htmlContent,
+    shikiTheme: "github-dark"
+  };
+  
+  // Convert attributes to JSON string for block comment
+  const attributesJson = JSON.stringify(attributes);
+  
+  // Create the Gutenberg block comment format
+  const gutenbergBlock = `<!-- wp:gfm-renderer/markdown ${attributesJson} /-->`;
+  
+  return gutenbergBlock;
+}
+
 /**
  * Get or create a WordPress category by slug
  */
@@ -194,9 +224,7 @@ async function processMarkdownFile(filePath) {
     const processedContent = await processImages(content, filePath);
     
     // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
-    const gutenbergContent = `<!-- wp:markdown -->
-${processedContent.trim()}
-<!-- /wp:markdown -->`;
+    const gutenbergContent = createGutenbergMarkdownBlock(processedContent);
     
     // Get post slug from frontmatter or filename
     const filename = path.basename(filePath, '.md');
