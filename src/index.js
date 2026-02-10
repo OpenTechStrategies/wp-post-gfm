@@ -2,11 +2,11 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 try {
-  const WORDPRESS_URL = core.getInput(wp_url);
-  const USERNAME = core.getInput(wp_username);
-  const APP_PASSWORD = core.getInput(wp_app_password);
-  const POSTS_DIR = core.getInput(directory);
-  const FORCE_PUBLISH = core.getInput(force_publish);
+  const WORDPRESS_URL = core.getInput('wp_url');
+  const USERNAME = core.getInput('wp_username');
+  const APP_PASSWORD = core.getInput('wp_app_password');
+  const POSTS_DIR = core.getInput('directory');
+  const FORCE_PUBLISH = core.getInput('force_publish');
 
   const payload = JSON.stringify(github.context.payload, undefined, 2);
   core.info(`The event payload: ${payload}`);
@@ -14,11 +14,11 @@ try {
   core.setFailed(error.message)
 }
 
-const fs = require('fs').promises;
-const path = require('path');
-const axios = require('axios');
-const matter = require('gray-matter');
-const FormData = require('form-data');
+import fs from 'fs/promises';
+import path from 'path';
+import axios from 'axios';
+import matter from 'gray-matter';
+import FormData from 'form-data';
 
 // WordPress API client
 const wpClient = axios.create({
