@@ -1,5 +1,4 @@
-import * as os from 'os';
-import os__default, { EOL } from 'os';
+import os, { EOL } from 'os';
 import crypto from 'crypto';
 import * as fs from 'fs';
 import fs__default, { promises, existsSync, readFileSync } from 'fs';
@@ -32,132 +31,11 @@ import require$$1$5 from 'node:dns';
 import require$$5$3 from 'string_decoder';
 import 'child_process';
 import 'timers';
-import 'fs/promises';
+import fs$1 from 'fs/promises';
 import stream, { Readable } from 'stream';
 import require$$0$7 from 'url';
 import http2 from 'http2';
 import zlib from 'zlib';
-
-// We use any as a valid input type
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/**
- * Sanitizes an input into a string so it can be passed into issueCommand safely
- * @param input input to sanitize into a string
- */
-function toCommandValue(input) {
-    if (input === null || input === undefined) {
-        return '';
-    }
-    else if (typeof input === 'string' || input instanceof String) {
-        return input;
-    }
-    return JSON.stringify(input);
-}
-/**
- *
- * @param annotationProperties
- * @returns The command properties to send with the actual annotation command
- * See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
- */
-function toCommandProperties(annotationProperties) {
-    if (!Object.keys(annotationProperties).length) {
-        return {};
-    }
-    return {
-        title: annotationProperties.title,
-        file: annotationProperties.file,
-        line: annotationProperties.startLine,
-        endLine: annotationProperties.endLine,
-        col: annotationProperties.startColumn,
-        endColumn: annotationProperties.endColumn
-    };
-}
-
-/**
- * Issues a command to the GitHub Actions runner
- *
- * @param command - The command name to issue
- * @param properties - Additional properties for the command (key-value pairs)
- * @param message - The message to include with the command
- * @remarks
- * This function outputs a specially formatted string to stdout that the Actions
- * runner interprets as a command. These commands can control workflow behavior,
- * set outputs, create annotations, mask values, and more.
- *
- * Command Format:
- *   ::name key=value,key=value::message
- *
- * @example
- * ```typescript
- * // Issue a warning annotation
- * issueCommand('warning', {}, 'This is a warning message');
- * // Output: ::warning::This is a warning message
- *
- * // Set an environment variable
- * issueCommand('set-env', { name: 'MY_VAR' }, 'some value');
- * // Output: ::set-env name=MY_VAR::some value
- *
- * // Add a secret mask
- * issueCommand('add-mask', {}, 'secretValue123');
- * // Output: ::add-mask::secretValue123
- * ```
- *
- * @internal
- * This is an internal utility function that powers the public API functions
- * such as setSecret, warning, error, and exportVariable.
- */
-function issueCommand(command, properties, message) {
-    const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + os.EOL);
-}
-const CMD_STRING = '::';
-class Command {
-    constructor(command, properties, message) {
-        if (!command) {
-            command = 'missing.command';
-        }
-        this.command = command;
-        this.properties = properties;
-        this.message = message;
-    }
-    toString() {
-        let cmdStr = CMD_STRING + this.command;
-        if (this.properties && Object.keys(this.properties).length > 0) {
-            cmdStr += ' ';
-            let first = true;
-            for (const key in this.properties) {
-                if (this.properties.hasOwnProperty(key)) {
-                    const val = this.properties[key];
-                    if (val) {
-                        if (first) {
-                            first = false;
-                        }
-                        else {
-                            cmdStr += ',';
-                        }
-                        cmdStr += `${key}=${escapeProperty(val)}`;
-                    }
-                }
-            }
-        }
-        cmdStr += `${CMD_STRING}${escapeData(this.message)}`;
-        return cmdStr;
-    }
-}
-function escapeData(s) {
-    return toCommandValue(s)
-        .replace(/%/g, '%25')
-        .replace(/\r/g, '%0D')
-        .replace(/\n/g, '%0A');
-}
-function escapeProperty(s) {
-    return toCommandValue(s)
-        .replace(/%/g, '%25')
-        .replace(/\r/g, '%0D')
-        .replace(/\n/g, '%0A')
-        .replace(/:/g, '%3A')
-        .replace(/,/g, '%2C');
-}
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -27904,8 +27782,8 @@ process.platform === 'win32';
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-os__default.platform();
-os__default.arch();
+os.platform();
+os.arch();
 
 (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -27942,33 +27820,6 @@ var ExitCode;
 function getInput(name, options) {
     const val = process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || '';
     return val.trim();
-}
-//-----------------------------------------------------------------------
-// Results
-//-----------------------------------------------------------------------
-/**
- * Sets the action status to failed.
- * When the action exits it will be with an exit code of 1
- * @param message add error issue message
- */
-function setFailed(message) {
-    process.exitCode = ExitCode.Failure;
-    error(message);
-}
-/**
- * Adds an error issue
- * @param message error issue message. Errors will be converted to string via toString()
- * @param properties optional properties to add to the annotation.
- */
-function error(message, properties = {}) {
-    issueCommand('error', toCommandProperties(properties), message instanceof Error ? message.toString() : message);
-}
-/**
- * Writes info to log with console.log.
- * @param message info message
- */
-function info(message) {
-    process.stdout.write(message + os.EOL);
 }
 
 class Context {
@@ -32659,7 +32510,7 @@ const defaults$2 = {
 };
 Octokit.plugin(restEndpointMethods, paginateRest).defaults(defaults$2);
 
-const context = new Context();
+new Context();
 
 /**
  * Create a bound version of a function with a specified `this` context
@@ -47402,12 +47253,12 @@ const hasStandardBrowserWebWorkerEnv = (() => {
 const origin = hasBrowserEnv && window.location.href || 'http://localhost';
 
 var utils$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    hasBrowserEnv: hasBrowserEnv,
-    hasStandardBrowserEnv: hasStandardBrowserEnv,
-    hasStandardBrowserWebWorkerEnv: hasStandardBrowserWebWorkerEnv,
-    navigator: _navigator,
-    origin: origin
+	__proto__: null,
+	hasBrowserEnv: hasBrowserEnv,
+	hasStandardBrowserEnv: hasStandardBrowserEnv,
+	hasStandardBrowserWebWorkerEnv: hasStandardBrowserWebWorkerEnv,
+	navigator: _navigator,
+	origin: origin
 });
 
 var platform = {
@@ -57236,27 +57087,17 @@ function requireGrayMatter () {
 	return grayMatter;
 }
 
-requireGrayMatter();
+var grayMatterExports = requireGrayMatter();
+var matter = /*@__PURE__*/getDefaultExportFromCjs(grayMatterExports);
 
-let WORDPRESS_URL;
-let USERNAME;
-let APP_PASSWORD;
-
-try {
-  const WORDPRESS_URL = getInput('wp_url');
-  const USERNAME = getInput('wp_username');
-  const APP_PASSWORD = getInput('wp_app_password');
-  const POSTS_DIR = getInput('directory');
-  const FORCE_PUBLISH = getInput('force_publish');
-
-  const payload = JSON.stringify(context.payload, undefined, 2);
-  info(`The event payload: ${payload}`);
-} catch (error) {
-  setFailed(error.message);
-}
+const POSTS_DIR = getInput('directory');
+const FORCE_PUBLISH = getInput('force_publish');
+const WORDPRESS_URL = process.env.WP_URL;
+const USERNAME = process.env.WP_USERNAME;
+const APP_PASSWORD = process.env.WP_APP_PASSWORD;
 
 // WordPress API client
-axios.create({
+const wpClient = axios.create({
   baseURL: `${WORDPRESS_URL}/wp-json/wp/v2`,
   auth: {
     username: USERNAME,
@@ -57267,6 +57108,302 @@ axios.create({
   }
 });
 
+// Cache for category mapping
+let categoryCache = {};
+// Cache for uploaded images (to avoid re-uploading the same image)
+let imageCache = {};
+// Cache for media IDs
+let imageCacheIds = {};
+
+/**
+ * Upload an image to WordPress media library
+ */
+async function uploadImage(imagePath, baseDir) {
+  const resolvedPath = path.isAbsolute(imagePath) 
+    ? imagePath 
+    : path.resolve(path.dirname(baseDir), imagePath);
+  
+  // Check cache first
+  if (imageCache[resolvedPath]) {
+    console.log(`  Using cached image: ${imagePath}`);
+    return imageCache[resolvedPath];
+  }
+
+  try {
+    const imageBuffer = await fs$1.readFile(resolvedPath);
+    const fileName = path.basename(resolvedPath);
+    
+    const formData = new FormData$1();
+    formData.append('file', imageBuffer, fileName);
+    
+    const response = await axios.post(
+      `${WORDPRESS_URL}/wp-json/wp/v2/media`,
+      formData,
+      {
+        auth: {
+          username: USERNAME,
+          password: APP_PASSWORD
+        },
+        headers: {
+          ...formData.getHeaders()
+        }
+      }
+    );
+    
+    const imageUrl = response.data.source_url;
+    const mediaId = response.data.id;
+    
+    imageCache[resolvedPath] = imageUrl;
+    imageCacheIds[resolvedPath] = mediaId;
+    
+    console.log(`  Uploaded image: ${fileName} -> ${imageUrl}`);
+    
+    return imageUrl;
+  } catch (error) {
+    console.error(`  Error uploading image ${imagePath}:`, error.response?.data || error.message);
+    // Return original path if upload fails
+    return imagePath;
+  }
+}
+
+/**
+ * Process images in Markdown content
+ * Finds image references, uploads them to WordPress, and updates the URLs
+ */
+async function processImages(content, markdownFilePath) {
+  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  let match;
+  const replacements = [];
+  
+  while ((match = imageRegex.exec(content)) !== null) {
+    const [fullMatch, altText, imagePath] = match;
+    
+    // Skip if it's already a full URL
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      continue;
+    }
+    
+    replacements.push({
+      original: fullMatch,
+      altText,
+      imagePath
+    });
+  }
+  
+  // Upload images and build replacements
+  let updatedContent = content;
+  for (const replacement of replacements) {
+    const uploadedUrl = await uploadImage(replacement.imagePath, markdownFilePath);
+    const newMarkdown = `![${replacement.altText}](${uploadedUrl})`;
+    updatedContent = updatedContent.replace(replacement.original, newMarkdown);
+  }
+  
+  return updatedContent;
+}
+
+/**
+ * Get or create a WordPress category by slug
+ */
+async function getOrCreateCategory(categoryName) {
+  const slug = categoryName.toLowerCase().replace(/\s+/g, '-');
+  
+  if (categoryCache[slug]) {
+    return categoryCache[slug];
+  }
+
+  try {
+    // Try to find existing category
+    const response = await wpClient.get('/categories', {
+      params: { slug }
+    });
+
+    if (response.data.length > 0) {
+      categoryCache[slug] = response.data[0].id;
+      return response.data[0].id;
+    }
+
+    // Create new category if not found
+    const createResponse = await wpClient.post('/categories', {
+      name: categoryName,
+      slug: slug
+    });
+
+    categoryCache[slug] = createResponse.data.id;
+    return createResponse.data.id;
+  } catch (error) {
+    console.error(`Error with category "${categoryName}":`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
+/**
+ * Extract categories from file path
+ * Example: posts/tech/ai/article.md -> ['tech', 'ai']
+ */
+function getCategoriesFromPath(filePath) {
+  const relativePath = path.relative(POSTS_DIR, filePath);
+  const parts = relativePath.split(path.sep);
+  
+  // Remove the filename and return directory names as categories
+  return parts.slice(0, -1).filter(part => part !== '');
+}
+
+/**
+ * Find existing post by slug
+ */
+async function findPostBySlug(slug) {
+  try {
+    const response = await wpClient.get('/posts', {
+      params: { slug, status: 'any' }
+    });
+    return response.data.length > 0 ? response.data[0] : null;
+  } catch (error) {
+    console.error(`Error finding post by slug "${slug}":`, error.message);
+    return null;
+  }
+}
+
+/**
+ * Process a single Markdown file
+ */
+async function processMarkdownFile(filePath) {
+  try {
+    console.log(`\nProcessing: ${filePath}`);
+    
+    const fileContent = await fs$1.readFile(filePath, 'utf-8');
+    const { data: frontmatter, content } = matter(fileContent);
+    
+    // Process images in the Markdown content
+    console.log(`  Processing images...`);
+    const processedContent = await processImages(content, filePath);
+    
+    // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
+    const gutenbergContent = `<!-- wp:markdown -->
+${processedContent.trim()}
+<!-- /wp:markdown -->`;
+    
+    // Get post slug from frontmatter or filename
+    const filename = path.basename(filePath, '.md');
+    const slug = frontmatter.slug || filename.toLowerCase().replace(/\s+/g, '-');
+    
+    // Get categories from path and frontmatter
+    const pathCategories = getCategoriesFromPath(filePath);
+    const frontmatterCategories = frontmatter.categories || [];
+    const allCategories = [...new Set([...pathCategories, ...frontmatterCategories])];
+    
+    // Get or create category IDs
+    const categoryIds = await Promise.all(
+      allCategories.map(cat => getOrCreateCategory(cat))
+    );
+    
+    // Prepare post data
+    const postData = {
+      title: frontmatter.title || filename,
+      content: gutenbergContent,
+      slug: slug,
+      status: frontmatter.status || 'draft',
+      categories: categoryIds,
+      excerpt: frontmatter.excerpt || '',
+      date: frontmatter.date || new Date().toISOString()
+    };
+    
+    // Handle featured image if specified in frontmatter
+    if (frontmatter.featured_image) {
+      console.log(`  Processing featured image...`);
+      try {
+        let featuredImageUrl;
+        
+        // If it's a URL, use it directly to get the media ID
+        if (frontmatter.featured_image.startsWith('http://') || frontmatter.featured_image.startsWith('https://')) {
+          featuredImageUrl = frontmatter.featured_image;
+        } else {
+          // Upload the local image
+          featuredImageUrl = await uploadImage(frontmatter.featured_image, filePath);
+        }
+        
+        // Get the media ID from the URL (if we uploaded it, it's in the cache response)
+        if (imageCache[path.resolve(path.dirname(filePath), frontmatter.featured_image)]) {
+          // We need to get the media ID - upload function should return full response
+          const imagePath = path.isAbsolute(frontmatter.featured_image)
+            ? frontmatter.featured_image
+            : path.resolve(path.dirname(filePath), frontmatter.featured_image);
+          
+          if (imageCacheIds[imagePath]) {
+            postData.featured_media = imageCacheIds[imagePath];
+          }
+        }
+      } catch (error) {
+        console.error(`  Error setting featured image:`, error.message);
+      }
+    }
+    
+    // Check if post already exists
+    const existingPost = await findPostBySlug(slug);
+    
+    if (existingPost) {
+      // Update existing post
+      console.log(`Updating post: ${postData.title} (ID: ${existingPost.id})`);
+      const response = await wpClient.put(`/posts/${existingPost.id}`, postData);
+      console.log(`✓ Updated: ${response.data.link}`);
+    } else {
+      // Create new post
+      console.log(`Creating post: ${postData.title}`);
+      const response = await wpClient.post('/posts', postData);
+      console.log(`✓ Created: ${response.data.link}`);
+    }
+    
+    return { success: true, slug };
+  } catch (error) {
+    console.error(`✗ Error processing ${filePath}:`, error.response?.data || error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get all Markdown files from a directory recursively
+ */
+async function getMarkdownFiles(dir) {
+  const files = [];
+  
+  async function traverse(currentDir) {
+    const entries = await fs$1.readdir(currentDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+      
+      if (entry.isDirectory()) {
+        await traverse(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        files.push(fullPath);
+      }
+    }
+  }
+  
+  await traverse(dir);
+  return files;
+}
+
+/**
+ * Get changed Markdown files from git diff
+ */
+async function getChangedMarkdownFiles() {
+  const { exec } = require('child_process');
+  const { promisify } = require('util');
+  const execAsync = promisify(exec);
+  
+  try {
+    const { stdout } = await execAsync('git diff --name-only HEAD~1 HEAD');
+    const changedFiles = stdout.split('\n')
+      .filter(file => file.startsWith(POSTS_DIR) && file.endsWith('.md'))
+      .filter(file => file.trim() !== '');
+    
+    return changedFiles;
+  } catch (error) {
+    console.log('Could not detect changed files, processing all files');
+    return null;
+  }
+}
+
 /**
  * Main function
  */
@@ -57274,8 +57411,57 @@ async function main() {
   console.log('Starting WordPress publishing process...\n');
   
   // Validate environment variables
-  {
+  if (!WORDPRESS_URL || !USERNAME || !APP_PASSWORD) {
     throw new Error('Missing required environment variables: WORDPRESS_URL, WORDPRESS_USERNAME, WORDPRESS_APP_PASSWORD');
+  }
+  
+  console.log(`WordPress URL: ${WORDPRESS_URL}`);
+  console.log(`Posts directory: ${POSTS_DIR}\n`);
+  
+  // Determine which files to process
+  let filesToProcess;
+  
+  if (FORCE_PUBLISH) {
+    console.log('Force publish enabled - processing all Markdown files');
+    filesToProcess = await getMarkdownFiles(POSTS_DIR);
+  } else {
+    const changedFiles = await getChangedMarkdownFiles();
+    
+    if (changedFiles && changedFiles.length > 0) {
+      console.log('Processing changed files only:');
+      changedFiles.forEach(file => console.log(`  - ${file}`));
+      filesToProcess = changedFiles;
+    } else {
+      console.log('No changed files detected or git diff unavailable - processing all files');
+      filesToProcess = await getMarkdownFiles(POSTS_DIR);
+    }
+  }
+  
+  if (filesToProcess.length === 0) {
+    console.log('No Markdown files found to process');
+    return;
+  }
+  
+  console.log(`\nFound ${filesToProcess.length} file(s) to process\n`);
+  
+  // Process all files
+  const results = await Promise.all(
+    filesToProcess.map(file => processMarkdownFile(file))
+  );
+  
+  // Summary
+  const successful = results.filter(r => r.success).length;
+  const failed = results.filter(r => !r.success).length;
+  
+  console.log('\n' + '='.repeat(50));
+  console.log('Publishing Summary');
+  console.log('='.repeat(50));
+  console.log(`Total files: ${results.length}`);
+  console.log(`Successful: ${successful}`);
+  console.log(`Failed: ${failed}`);
+  
+  if (failed > 0) {
+    process.exit(1);
   }
 }
 

@@ -2,12 +2,6 @@ name: 'Post to WordPress'
 description: 'Publish GFM Markdown files to WordPress'
 
 inputs:
-  wp_app_password:
-    required: true
-  wp_username:
-    required: true
-  wp_url:
-    required: true
   directory:
     required: true
   force_publish:
