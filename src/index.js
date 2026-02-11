@@ -396,66 +396,6 @@ async function getChangedMarkdownFiles() {
   }
 }
 
-/**
- * Publish specific draft posts by their IDs
- */
-async function publishDraftsByIds(postIds) {
-  console.log('\n' + '='.repeat(50));
-  console.log('Publishing Draft Posts from This Run');
-  console.log('='.repeat(50));
-  
-  if (!postIds || postIds.length === 0) {
-    console.log('No posts to publish');
-    return { published: 0, failed: 0 };
-  }
-  
-  try {
-    console.log(`Publishing ${postIds.length} post(s)\n`);
-    
-    // Publish each post by ID
-    const results = [];
-    for (const postId of postIds) {
-      try {
-        // First fetch the post to get its details
-        const postResponse = await wpClient.get(`/posts/${postId}`);
-        const post = postResponse.data;
-        
-        // Only publish if it's currently a draft
-        if (post.status === 'draft') {
-          console.log(`Publishing: ${post.title.rendered} (ID: ${postId})`);
-          await wpClient.put(`/posts/${postId}`, {
-            status: 'publish'
-          });
-          console.log(`✓ Published: ${post.link}`);
-          results.push({ success: true, id: postId, title: post.title.rendered });
-        } else {
-          console.log(`Skipping: ${post.title.rendered} (ID: ${postId}) - already ${post.status}`);
-          results.push({ success: true, id: postId, title: post.title.rendered, skipped: true });
-        }
-      } catch (error) {
-        console.error(`✗ Failed to publish post ID ${postId}:`, error.response?.data || error.message);
-        results.push({ success: false, id: postId, error: error.message });
-      }
-    }
-    
-    const published = results.filter(r => r.success && !r.skipped).length;
-    const skipped = results.filter(r => r.skipped).length;
-    const failed = results.filter(r => !r.success).length;
-    
-    console.log('\n' + '-'.repeat(50));
-    console.log(`Published: ${published}`);
-    if (skipped > 0) {
-      console.log(`Skipped (already published): ${skipped}`);
-    }
-    console.log(`Failed: ${failed}`);
-    console.log('-'.repeat(50));
-    
-    return { published, failed, skipped };
-  } catch (error) {
-    console.error('Error publishing posts:', error.response?.data || error.message);
-    return { published: 0, failed: 0, error: error.message };
-  }
-}
 
 /**
  * Main function
@@ -513,17 +453,6 @@ async function main() {
   console.log(`Successful: ${successful}`);
   console.log(`Failed: ${failed}`);
   
-  // Collect post IDs from successfully processed files
-  const postIdsToPublish = results
-    .filter(r => r.success && r.postId)
-    .map(r => r.postId);
-  
-  // Publish only the posts that were created/updated in this run
-  const publishResults = await publishDraftsByIds(postIdsToPublish);
-  
-  if (failed > 0 || publishResults.failed > 0) {
-    process.exit(1);
-  }
 }
 
 // Run the script
