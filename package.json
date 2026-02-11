@@ -25,7 +25,8 @@
     "axios": "^1.13.5",
     "form-data": "^4.0.5",
     "formdata": "^0.10.4",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.1.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^29.0.0",
