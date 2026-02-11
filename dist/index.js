@@ -65480,6 +65480,7 @@ let imageCacheIds = {};
 
 /**
  * Upload an image to WordPress media library
+ * If a file with the same name exists, it will be replaced
  */
 async function uploadImage(imagePath, baseDir) {
   const resolvedPath = path.isAbsolute(imagePath) 
@@ -65496,30 +65497,74 @@ async function uploadImage(imagePath, baseDir) {
     const imageBuffer = await fs$1.readFile(resolvedPath);
     const fileName = path.basename(resolvedPath);
     
+    // Check if a media file with the same name already exists
+    let existingMedia = null;
+    try {
+      const searchResponse = await wpClient.get('/media', {
+        params: {
+          search: fileName,
+          per_page: 100
+        }
+      });
+      
+      // Find exact filename match
+      existingMedia = searchResponse.data.find(media => {
+        const mediaFileName = media.source_url.split('/').pop();
+        return mediaFileName === fileName;
+      });
+      
+      if (existingMedia) {
+        console.log(`  Found existing media: ${fileName} (ID: ${existingMedia.id})`);
+      }
+    } catch (searchError) {
+      console.log(`  Could not search for existing media: ${searchError.message}`);
+    }
+    
     const formData = new FormData$1();
     formData.append('file', imageBuffer, fileName);
     
-    const response = await axios.post(
-      `${WORDPRESS_URL}/wp-json/wp/v2/media`,
-      formData,
-      {
-        auth: {
-          username: USERNAME,
-          password: APP_PASSWORD
-        },
-        headers: {
-          ...formData.getHeaders()
+    let response;
+    
+    if (existingMedia) {
+      // Replace existing media
+      console.log(`  Replacing existing media: ${fileName}`);
+      response = await axios.post(
+        `${WORDPRESS_URL}/wp-json/wp/v2/media/${existingMedia.id}`,
+        formData,
+        {
+          auth: {
+            username: USERNAME,
+            password: APP_PASSWORD
+          },
+          headers: {
+            ...formData.getHeaders()
+          }
         }
-      }
-    );
+      );
+      console.log(`  Replaced image: ${fileName} -> ${response.data.source_url}`);
+    } else {
+      // Upload new media
+      response = await axios.post(
+        `${WORDPRESS_URL}/wp-json/wp/v2/media`,
+        formData,
+        {
+          auth: {
+            username: USERNAME,
+            password: APP_PASSWORD
+          },
+          headers: {
+            ...formData.getHeaders()
+          }
+        }
+      );
+      console.log(`  Uploaded new image: ${fileName} -> ${response.data.source_url}`);
+    }
     
     const imageUrl = response.data.source_url;
     const mediaId = response.data.id;
     
     imageCache[resolvedPath] = imageUrl;
     imageCacheIds[resolvedPath] = mediaId;
-    
-    console.log(`  Uploaded image: ${fileName} -> ${imageUrl}`);
     
     return imageUrl;
   } catch (error) {
@@ -65730,19 +65775,22 @@ async function processMarkdownFile(filePath) {
     // Check if post already exists
     const existingPost = await findPostBySlug(slug);
     
+    let postId;
     if (existingPost) {
       // Update existing post
       console.log(`Updating post: ${postData.title} (ID: ${existingPost.id})`);
       const response = await wpClient.put(`/posts/${existingPost.id}`, postData);
       console.log(`✓ Updated: ${response.data.link}`);
+      postId = response.data.id;
     } else {
       // Create new post
       console.log(`Creating post: ${postData.title}`);
       const response = await wpClient.post('/posts', postData);
       console.log(`✓ Created: ${response.data.link}`);
+      postId = response.data.id;
     }
     
-    return { success: true, slug };
+    return { success: true, slug, postId };
   } catch (error) {
     console.error(`✗ Error processing ${filePath}:`, error.response?.data || error.message);
     return { success: false, error: error.message };
@@ -65791,6 +65839,67 @@ async function getChangedMarkdownFiles() {
   } catch (error) {
     console.log('Could not detect changed files, processing all files');
     return null;
+  }
+}
+
+/**
+ * Publish specific draft posts by their IDs
+ */
+async function publishDraftsByIds(postIds) {
+  console.log('\n' + '='.repeat(50));
+  console.log('Publishing Draft Posts from This Run');
+  console.log('='.repeat(50));
+  
+  if (!postIds || postIds.length === 0) {
+    console.log('No posts to publish');
+    return { published: 0, failed: 0 };
+  }
+  
+  try {
+    console.log(`Publishing ${postIds.length} post(s)\n`);
+    
+    // Publish each post by ID
+    const results = [];
+    for (const postId of postIds) {
+      try {
+        // First fetch the post to get its details
+        const postResponse = await wpClient.get(`/posts/${postId}`);
+        const post = postResponse.data;
+        
+        // Only publish if it's currently a draft
+        if (post.status === 'draft') {
+          console.log(`Publishing: ${post.title.rendered} (ID: ${postId})`);
+          await wpClient.put(`/posts/${postId}`, {
+            status: 'publish'
+          });
+          console.log(`✓ Published: ${post.link}`);
+          results.push({ success: true, id: postId, title: post.title.rendered });
+        } else {
+          console.log(`Skipping: ${post.title.rendered} (ID: ${postId}) - already ${post.status}`);
+          results.push({ success: true, id: postId, title: post.title.rendered, skipped: true });
+        }
+      } catch (error) {
+        console.error(`✗ Failed to publish post ID ${postId}:`, error.response?.data || error.message);
+        results.push({ success: false, id: postId, error: error.message });
+      }
+    }
+    
+    const published = results.filter(r => r.success && !r.skipped).length;
+    const skipped = results.filter(r => r.skipped).length;
+    const failed = results.filter(r => !r.success).length;
+    
+    console.log('\n' + '-'.repeat(50));
+    console.log(`Published: ${published}`);
+    if (skipped > 0) {
+      console.log(`Skipped (already published): ${skipped}`);
+    }
+    console.log(`Failed: ${failed}`);
+    console.log('-'.repeat(50));
+    
+    return { published, failed, skipped };
+  } catch (error) {
+    console.error('Error publishing posts:', error.response?.data || error.message);
+    return { published: 0, failed: 0, error: error.message };
   }
 }
 
@@ -65850,7 +65959,15 @@ async function main() {
   console.log(`Successful: ${successful}`);
   console.log(`Failed: ${failed}`);
   
-  if (failed > 0) {
+  // Collect post IDs from successfully processed files
+  const postIdsToPublish = results
+    .filter(r => r.success && r.postId)
+    .map(r => r.postId);
+  
+  // Publish only the posts that were created/updated in this run
+  const publishResults = await publishDraftsByIds(postIdsToPublish);
+  
+  if (failed > 0 || publishResults.failed > 0) {
     process.exit(1);
   }
 }
