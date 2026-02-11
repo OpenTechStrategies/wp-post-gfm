@@ -179,7 +179,7 @@ function createGutenbergMarkdownBlock(markdownContent) {
   // Create the block attributes object
   const attributes = {
     content: markdownContent,
-    HTML: htmlContent,
+    html: htmlContent,
     shikiTheme: "github-dark"
   };
   
