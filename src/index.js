@@ -278,7 +278,7 @@ async function processMarkdownFile(filePath) {
     // Get categories from path and frontmatter
     const pathCategories = getCategoriesFromPath(filePath);
     const frontmatterCategories = frontmatter.categories || [] ;
-      const allCategories = [...new Set([...pathCategories, ...frontmatterCategories, baseDir])];
+    const allCategories = [...new Set([...pathCategories, ...frontmatterCategories, POSTS_DIR])];
     
     // Get or create category IDs
     const categoryIds = await Promise.all(
