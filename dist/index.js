@@ -65637,12 +65637,9 @@ function processMarkdownLinks(content) {
     if (linkPath.endsWith('.md')) {
       // Extract filename without extension
       const filename = path.basename(linkPath, '.md');
-      
-      // Convert to lowercase hyphenated slug
-      const slug = filename
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric chars with hyphens
-        .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
+
+      // Use same method as below create slug from filename
+      const slug = filename.toLowerCase().replace(/\s+/g, '-');
       
       // Create the new post URL
       const newUrl = `../${slug}`;
