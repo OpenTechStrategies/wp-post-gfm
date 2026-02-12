@@ -65455,6 +65455,7 @@ MarkdownIt.prototype.renderInline = function (src, env) {
 
 const POSTS_DIR = getInput('directory');
 const FORCE_PUBLISH = getInput('force_publish');
+const DEFAULT_STATUS = getInput('default_status');
 const WORDPRESS_URL = process.env.WP_URL;
 const USERNAME = process.env.WP_USERNAME;
 const APP_PASSWORD = process.env.WP_APP_PASSWORD;
@@ -65736,7 +65737,7 @@ async function processMarkdownFile(filePath) {
       title: frontmatter.title || filename,
       content: gutenbergContent,
       slug: slug,
-      status: frontmatter.status || 'draft',
+      status: frontmatter.status || DEFAULT_STATUS,
       categories: categoryIds,
       excerpt: frontmatter.excerpt || '',
       date: frontmatter.date || new Date().toISOString()
