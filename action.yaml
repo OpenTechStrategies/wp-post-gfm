@@ -3,11 +3,16 @@ description: 'Publish GFM Markdown files to WordPress'
 
 inputs:
   directory:
+    description: 'Set a base directory to find .md files'
     required: true
   force_publish:
     description: 'Force republish all posts'
     required: false
-    default: 'false'
+    default: 'true'
+  default_status:
+    description: 'Add a default status for your posts. Can be overridden by frontmatter.'
+    required: false
+    default: 'draft'
 
 runs:
   using: node20
