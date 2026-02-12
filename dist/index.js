@@ -65610,6 +65610,51 @@ async function processImages(content, markdownFilePath) {
   return updatedContent;
 }
 
+/**
+ * Process relative markdown links and convert them to post URLs
+ * Finds relative links to .md files and replaces them with ./slug-from-filename
+ */
+
+function processMarkdownLinks(content) {
+  // Regex to match markdown links: [text](path)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  
+  let updatedContent = content;
+  let match;
+  
+  while ((match = linkRegex.exec(content)) !== null) {
+    const [fullMatch, linkText, linkPath] = match;
+    
+    // Skip if it's already a full URL (http/https) or an anchor link
+    if (linkPath.startsWith('http://') || 
+        linkPath.startsWith('https://') || 
+        linkPath.startsWith('#') ||
+        linkPath.startsWith('/')) {
+      continue;
+    }
+    
+    // Check if it's a relative link to a .md file
+    if (linkPath.endsWith('.md')) {
+      // Extract filename without extension
+      const filename = path.basename(linkPath, '.md');
+      
+      // Convert to lowercase hyphenated slug
+      const slug = filename
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric chars with hyphens
+        .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
+      
+      // Create the new post URL
+      const newUrl = `./${slug}`;
+      const newLink = `[${linkText}](${newUrl})`;
+      
+      updatedContent = updatedContent.replace(fullMatch, newLink);
+    }
+  }
+  
+  return updatedContent;
+}
+
 function createGutenbergMarkdownBlock(markdownContent) {
 
   // Initialize markdown-it with GFM-like options
@@ -65713,7 +65758,11 @@ async function processMarkdownFile(filePath) {
     
     // Process images in the Markdown content
     console.log(`  Processing images...`);
-    const processedContent = await processImages(content, filePath);
+    let processedContent = await processImages(content, filePath);
+
+    // Process relative markdown links
+    console.log(`  Processing markdown links...`);
+    processedContent = processMarkdownLinks(processedContent);
     
     // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
     const gutenbergContent = createGutenbergMarkdownBlock(processedContent);
