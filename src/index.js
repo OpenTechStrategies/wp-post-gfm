@@ -298,6 +298,28 @@ async function findPostBySlug(slug) {
 }
 
 /**
+ * Convert an all-caps hyphenated filename to Title Case with spaces
+ * Keeps certain acronyms in all caps
+ */
+function toTitleCase(str) {
+  // Common acronyms to keep in all caps
+  const acronyms = new Set(['API', 'URL', 'HTTP', 'HTTPS', 'HTML', 'CSS', 'JS', 'JSON', 'XML', 'SQL', 'AWS', 'AI', 'ML', 'UI', 'UX', 'ID', 'PDF']);
+  
+  return str
+    .split('_')
+    .map(word => {
+      const upperWord = word.toUpperCase();
+      // Keep acronyms in all caps
+      if (acronyms.has(upperWord)) {
+        return upperWord;
+      }
+      // Convert to title case
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
+/**
  * Process a single Markdown file
  */
 async function processMarkdownFile(filePath) {
@@ -334,7 +356,7 @@ async function processMarkdownFile(filePath) {
     
     // Prepare post data
     const postData = {
-      title: frontmatter.title || filename,
+      title: frontmatter.title || toTitleCase(filename),
       content: gutenbergContent,
       slug: slug,
       status: frontmatter.status || DEFAULT_STATUS,
