@@ -304,15 +304,23 @@ async function findPostBySlug(slug) {
 function toTitleCase(str) {
   // Common acronyms to keep in all caps
   const acronyms = new Set(['API', 'URL', 'HTTP', 'HTTPS', 'HTML', 'CSS', 'JS', 'JSON', 'XML', 'SQL', 'AWS', 'AI', 'ML', 'UI', 'UX', 'ID', 'PDF']);
-  
+  const special_cases = {'IDP': 'IdP'};
+    
   return str
     .split('_')
     .map(word => {
       const upperWord = word.toUpperCase();
+
       // Keep acronyms in all caps
       if (acronyms.has(upperWord)) {
         return upperWord;
       }
+
+      // Check for special cases
+      if (special_cases[upperWord]) {
+          return special_cases[upperWord]
+      }
+
       // Convert to title case
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
