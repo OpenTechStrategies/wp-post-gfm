@@ -65645,7 +65645,7 @@ function processMarkdownLinks(content) {
         .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
       
       // Create the new post URL
-      const newUrl = `./${slug}`;
+      const newUrl = `../${slug}`;
       const newLink = `[${linkText}](${newUrl})`;
       
       updatedContent = updatedContent.replace(fullMatch, newLink);
