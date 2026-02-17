@@ -24,7 +24,7 @@ Publish Markdown documents as WordPress posts on push.
 1. You will need to have the [GFM Markdown Renderer] plug-in installed
    on your WordPress site so that you have access to
    `gfm-renderer/markdown` blocks. ([Backup
-   link](https://code.librehq.com/ots/gfm-renderer-for-wordpress)
+   link](https://code.librehq.com/ots/gfm-renderer-for-wordpress))
 
 [GFM Markdown Renderer]: (https://wordpress.org/plugins/markdown-renderer-for-github/)
 
