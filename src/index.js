@@ -201,17 +201,27 @@ function processMarkdownLinks(content) {
         linkPath.startsWith('/')) {
       continue;
     }
+
+    // For anchor links to .md files, separate the file path from the anchor
+    const hashIndex = linkPath.indexOf('#');
+    let filePath = linkPath;
+    let anchor = '';
+    
+    if (hashIndex !== -1) {
+      filePath = linkPath.substring(0, hashIndex);
+      anchor = linkPath.substring(hashIndex); // Includes the # symbol
+    }
     
     // Check if it's a relative link to a .md file
-    if (linkPath.endsWith('.md')) {
+    if (filePath.endsWith('.md')) {
       // Extract filename without extension
-      const filename = path.basename(linkPath, '.md');
+      const filename = path.basename(filePath, '.md');
 
       // Use same method as below create slug from filename
       const slug = filename.toLowerCase().replace(/\s+/g, '-');
-      
+
       // Create the new post URL
-      const newUrl = `../${slug}`;
+      const newUrl = `../${slug}${anchor}`;
       const newLink = `[${linkText}](${newUrl})`;
       
       updatedContent = updatedContent.replace(fullMatch, newLink);
