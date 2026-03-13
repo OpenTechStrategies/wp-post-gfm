@@ -8,7 +8,7 @@ inputs:
   force_publish:
     description: 'Force republish all posts'
     required: false
-    default: 'true'
+    default: 'false'
   default_status:
     description: 'Add a default status for your posts. Can be overridden by frontmatter.'
     required: false
