@@ -65665,6 +65665,28 @@ function processMarkdownLinks(content) {
   return updatedContent;
 }
 
+/**
+ * Add a link to the original GitHub source document at the end of the post content
+ */
+function addGitHubSourceLink(content, filePath) {
+  // Get the repository context from GitHub Actions
+  const repository = process.env.GITHUB_REPOSITORY; // e.g., "username/repo"
+  const sha = process.env.GITHUB_SHA || 'main'; // Commit SHA or default to main branch
+  
+  if (!repository) {
+    console.log('  GitHub repository context not available, skipping source link');
+    return content;
+  }
+  
+  // Get the relative path from the repository root
+  const relativePath = path.relative(process.cwd(), filePath);
+
+  const githubUrl = `https://github.com/${repository}/blob/${sha}/${relativePath}`;
+  const sourceLink = `\n\n---\n\n*[View source on GitHub](${githubUrl})*`;
+  
+  return content + sourceLink;
+}
+
 function createGutenbergMarkdownBlock(markdownContent) {
 
   // Initialize markdown-it with GFM-like options
@@ -65803,6 +65825,9 @@ async function processMarkdownFile(filePath) {
     // Process relative markdown links
     console.log(`  Processing markdown links...`);
     processedContent = processMarkdownLinks(processedContent);
+
+    console.log(`  Adding link to source document...`);
+    processedContent = addGitHubSourceLink(processedContent, filePath);
     
     // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
     const gutenbergContent = createGutenbergMarkdownBlock(processedContent);
