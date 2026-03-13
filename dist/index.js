@@ -65682,9 +65682,9 @@ function addGitHubSourceLink(content, filePath) {
   const relativePath = path.relative(process.cwd(), filePath);
 
   const githubUrl = `https://github.com/${repository}/blob/${sha}/${relativePath}`;
-  const sourceLink = `\n\n---\n\n*[View source on GitHub](${githubUrl})*`;
+  const sourceLink = `*[View source on GitHub](${githubUrl})*\n\n---\n\n`;
   
-  return content + sourceLink;
+  return sourceLink + content;
 }
 
 /**
