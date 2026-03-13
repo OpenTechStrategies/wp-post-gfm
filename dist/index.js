@@ -65701,6 +65701,12 @@ function removeCheckboxes(content) {
   return updatedContent;
 }
 
+function addDisclaimer(content) {
+  // Add warning not to edit on WordPress
+  const disclaimer = "\n\n *This content was automatically generated from GitHub. Any edits made on WordPress will be lost.*";
+  return content + disclaimer;
+}
+
 function createGutenbergMarkdownBlock(markdownContent) {
 
   // Initialize markdown-it with GFM-like options
@@ -65847,6 +65853,9 @@ async function processMarkdownFile(filePath) {
     // Add link to source
     console.log(`  Adding link to source document...`);
     processedContent = addGitHubSourceLink(processedContent, filePath);
+
+    // Add edit disclaimer
+    processedContent = addDisclaimer(processedContent);
     
     // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
     const gutenbergContent = createGutenbergMarkdownBlock(processedContent);
