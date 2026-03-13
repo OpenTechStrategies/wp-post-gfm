@@ -253,6 +253,20 @@ function addGitHubSourceLink(content, filePath) {
   return content + sourceLink;
 }
 
+/**
+ * Remove checkboxes from markdown content
+ * Removes both checked and unchecked checkboxes: [ ] and [x]
+ */
+function removeCheckboxes(content) {
+  // Remove unchecked checkboxes: - [ ] or * [ ]
+  let updatedContent = content.replace(/^(\s*[-*]\s)\[ \]\s/gm, '$1');
+  
+  // Remove checked checkboxes: - [x] or * [x] (case insensitive)
+  updatedContent = updatedContent.replace(/^(\s*[-*]\s)\[[xX]\]\s/gm, '$1');
+  
+  return updatedContent;
+}
+
 function createGutenbergMarkdownBlock(markdownContent) {
 
   // Initialize markdown-it with GFM-like options
@@ -392,6 +406,11 @@ async function processMarkdownFile(filePath) {
     console.log(`  Processing markdown links...`);
     processedContent = processMarkdownLinks(processedContent);
 
+    // Remove checkboxes
+    console.log(`  Removing checkboxes...`);
+    processedContent = removeCheckboxes(processedContent);
+
+    // Add link to source
     console.log(`  Adding link to source document...`);
     processedContent = addGitHubSourceLink(processedContent, filePath);
     
