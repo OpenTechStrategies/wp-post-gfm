@@ -403,7 +403,12 @@ async function processMarkdownFile(filePath) {
     
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const { data: frontmatter, content } = matter(fileContent);
-    
+
+    if (frontmatter.skip-wordpress) {
+	console.log(`  Skipping (skip-wordpress: true in frontmatter)`);
+	return { success: true, slug: null, skipped: true };
+    }
+
     // Process images in the Markdown content
     console.log(`  Processing images...`);
     let processedContent = await processImages(content, filePath);
@@ -598,13 +603,15 @@ async function main() {
   );
   
   // Summary
-  const successful = results.filter(r => r.success).length;
+  const skipped = results.filter(r => r.skipped).length;
+  const successful = results.filter(r => r.success && !r.skipped).length;
   const failed = results.filter(r => !r.success).length;
-  
+
   console.log('\n' + '='.repeat(50));
   console.log('Publishing Summary');
   console.log('='.repeat(50));
   console.log(`Total files: ${results.length}`);
+  console.log(`Skipped: ${skipped}`);
   console.log(`Successful: ${successful}`);
   console.log(`Failed: ${failed}`);
   
