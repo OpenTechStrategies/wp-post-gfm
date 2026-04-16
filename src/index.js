@@ -232,7 +232,8 @@ function processMarkdownLinks(content) {
 }
 
 /**
- * Add a link to the original GitHub source document at the end of the post content
+ * Add a link to the original GitHub source document at the beginning and
+ * end of the post content
  */
 function addGitHubSourceLink(content, filePath) {
   // Get the repository context from GitHub Actions
@@ -269,10 +270,6 @@ function removeCheckboxes(content) {
   return updatedContent;
 }
 
-function addDisclaimer(content) {
-  // Add warning not to edit on WordPress
-}
-
 function createGutenbergMarkdownBlock(markdownContent) {
 
   // Initialize markdown-it with GFM-like options
@@ -283,7 +280,6 @@ function createGutenbergMarkdownBlock(markdownContent) {
     breaks: true       // Convert \n in paragraphs into <br> (GFM-style)
   });
   
-  // Render markdown to HTML
   const htmlContent = md.render(markdownContent);
   
   // Create the block attributes object
@@ -293,7 +289,6 @@ function createGutenbergMarkdownBlock(markdownContent) {
     shikiTheme: "github-dark"
   };
   
-  // Convert attributes to JSON string for block comment
   const attributesJson = JSON.stringify(attributes);
   
   // Create the Gutenberg block comment format
@@ -378,12 +373,10 @@ function toTitleCase(str) {
     .map(word => {
       const upperWord = word.toUpperCase();
 
-      // Keep initialisms in all caps
       if (initialisms.has(upperWord)) {
         return upperWord;
       }
 
-      // Check for special cases
       if (special_cases[upperWord]) {
           return special_cases[upperWord]
       }
@@ -409,23 +402,18 @@ async function processMarkdownFile(filePath) {
 	return { success: true, slug: null, skipped: true };
     }
 
-    // Process images in the Markdown content
     console.log(`  Processing images...`);
     let processedContent = await processImages(content, filePath);
 
-    // Process relative markdown links
     console.log(`  Processing markdown links...`);
     processedContent = processMarkdownLinks(processedContent);
 
-    // Remove checkboxes
     console.log(`  Removing checkboxes...`);
     processedContent = removeCheckboxes(processedContent);
 
-    // Add link to source
     console.log(`  Adding link to source document...`);
     processedContent = addGitHubSourceLink(processedContent, filePath);
 
-    // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
     const gutenbergContent = createGutenbergMarkdownBlock(processedContent);
     
     // Get post slug from frontmatter or filename
@@ -459,13 +447,11 @@ async function processMarkdownFile(filePath) {
     
     let postId;
     if (existingPost) {
-      // Update existing post
       console.log(`Updating post: ${postData.title} (ID: ${existingPost.id})`);
       const response = await wpClient.put(`/posts/${existingPost.id}`, postData);
       console.log(`✓ Updated: ${response.data.link}`);
       postId = response.data.id;
     } else {
-      // Create new post
       console.log(`Creating post: ${postData.title}`);
       const response = await wpClient.post('/posts', postData);
       console.log(`✓ Created: ${response.data.link}`);
@@ -524,10 +510,6 @@ async function getChangedMarkdownFiles() {
   }
 }
 
-
-/**
- * Main function
- */
 async function main() {
   console.log('Starting WordPress publishing process...\n');
   
@@ -585,7 +567,6 @@ async function main() {
   
 }
 
-// Run the script
 main().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);
