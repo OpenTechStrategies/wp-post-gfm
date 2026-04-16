@@ -472,9 +472,15 @@ async function getChangedMarkdownFiles() {
   
   try {
     const { stdout } = await execAsync('git diff --name-only HEAD~1 HEAD');
+    const extraFilesList = EXTRA_FILES
+      ? EXTRA_FILES.split(',').map(f => f.trim()).filter(f => f !== '')
+      : [];
     const changedFiles = stdout.split('\n')
-      .filter(file => file.startsWith(POSTS_DIR) && file.endsWith('.md'))
-      .filter(file => file.trim() !== '');
+      .filter(file => file.trim() !== '')
+      .filter(file =>
+        (file.startsWith(POSTS_DIR) && file.endsWith('.md')) ||
+        extraFilesList.includes(file)
+      );
     
     return changedFiles;
   } catch (error) {
