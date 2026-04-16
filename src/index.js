@@ -247,10 +247,12 @@ function addGitHubSourceLink(content, filePath) {
   // Get the relative path from the repository root
   const relativePath = path.relative(process.cwd(), filePath);
 
-  const githubUrl = `https://github.com/${repository}/blob/${sha}/${relativePath}`;
+    const githubUrl = `https://github.com/${repository}/blob/${sha}/${relativePath}`;
   const sourceLink = `*[View source on GitHub](${githubUrl})*\n\n`;
   
-  return sourceLink + content;
+    const disclaimer = `\n\n *This content was automatically generated from [GitHub](${githunUrl}). Any edits made on WordPress will be lost.*`;
+ 
+  return sourceLink + content + disclaimer;
 }
 
 /**
@@ -269,8 +271,6 @@ function removeCheckboxes(content) {
 
 function addDisclaimer(content) {
   // Add warning not to edit on WordPress
-  const disclaimer = "\n\n *This content was automatically generated from GitHub. Any edits made on WordPress will be lost.*";
-  return content + disclaimer;
 }
 
 function createGutenbergMarkdownBlock(markdownContent) {
@@ -425,9 +425,6 @@ async function processMarkdownFile(filePath) {
     console.log(`  Adding link to source document...`);
     processedContent = addGitHubSourceLink(processedContent, filePath);
 
-    // Add edit disclaimer
-    processedContent = addDisclaimer(processedContent);
-    
     // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
     const gutenbergContent = createGutenbergMarkdownBlock(processedContent);
     
@@ -456,35 +453,6 @@ async function processMarkdownFile(filePath) {
       date: frontmatter.date || new Date().toISOString()
     };
     
-    // Handle featured image if specified in frontmatter
-    if (frontmatter.featured_image) {
-      console.log(`  Processing featured image...`);
-      try {
-        let featuredImageUrl;
-        
-        // If it's a URL, use it directly to get the media ID
-        if (frontmatter.featured_image.startsWith('http://') || frontmatter.featured_image.startsWith('https://')) {
-          featuredImageUrl = frontmatter.featured_image;
-        } else {
-          // Upload the local image
-          featuredImageUrl = await uploadImage(frontmatter.featured_image, filePath);
-        }
-        
-        // Get the media ID from the URL (if we uploaded it, it's in the cache response)
-        if (imageCache[path.resolve(path.dirname(filePath), frontmatter.featured_image)]) {
-          // We need to get the media ID - upload function should return full response
-          const imagePath = path.isAbsolute(frontmatter.featured_image)
-            ? frontmatter.featured_image
-            : path.resolve(path.dirname(filePath), frontmatter.featured_image);
-          
-          if (imageCacheIds[imagePath]) {
-            postData.featured_media = imageCacheIds[imagePath];
-          }
-        }
-      } catch (error) {
-        console.error(`  Error setting featured image:`, error.message);
-      }
-    }
     
     // Check if post already exists
     const existingPost = await findPostBySlug(slug);
