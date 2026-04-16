@@ -65935,7 +65935,7 @@ async function main() {
     ? EXTRA_FILES.split(',').map(f => f.trim()).filter(f => f.endsWith('.md'))
     : [];
 
-  if (FORCE_PUBLISH) {
+  if (FORCE_PUBLISH === 'true') {
     console.log('Force publish enabled - processing all Markdown files');
     filesToProcess = await getMarkdownFiles(POSTS_DIR);
     filesToProcess = [...new Set([...filesToProcess, ...extraFiles])];
