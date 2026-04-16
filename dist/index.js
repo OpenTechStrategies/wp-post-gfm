@@ -65478,9 +65478,8 @@ const wpClient = axios.create({
 // Cache for category mapping
 let categoryCache = {};
 // Cache for uploaded images (to avoid re-uploading the same image)
+// Maps resolved path -> { url, mediaId }
 let imageCache = {};
-// Cache for media IDs
-let imageCacheIds = {};
 
 /**
  * Upload an image to WordPress media library
@@ -65494,7 +65493,7 @@ async function uploadImage(imagePath, baseDir) {
   // Check cache first
   if (imageCache[resolvedPath]) {
     console.log(`  Using cached image: ${imagePath}`);
-    return imageCache[resolvedPath];
+    return imageCache[resolvedPath].url;
   }
 
   try {
@@ -65526,51 +65525,24 @@ async function uploadImage(imagePath, baseDir) {
     
     const formData = new FormData$1();
     formData.append('file', imageBuffer, fileName);
-    
-    let response;
-    
-    if (existingMedia) {
-      // Replace existing media
-      console.log(`  Replacing existing media: ${fileName}`);
-      response = await axios.post(
-        `${WORDPRESS_URL}/wp-json/wp/v2/media/${existingMedia.id}`,
-        formData,
-        {
-          auth: {
-            username: USERNAME,
-            password: APP_PASSWORD
-          },
-          headers: {
-            ...formData.getHeaders()
-          }
-        }
-      );
-      console.log(`  Replaced image: ${fileName} -> ${response.data.source_url}`);
-    } else {
-      // Upload new media
-      response = await axios.post(
-        `${WORDPRESS_URL}/wp-json/wp/v2/media`,
-        formData,
-        {
-          auth: {
-            username: USERNAME,
-            password: APP_PASSWORD
-          },
-          headers: {
-            ...formData.getHeaders()
-          }
-        }
-      );
-      console.log(`  Uploaded new image: ${fileName} -> ${response.data.source_url}`);
-    }
-    
-    const imageUrl = response.data.source_url;
-    const mediaId = response.data.id;
-    
-    imageCache[resolvedPath] = imageUrl;
-    imageCacheIds[resolvedPath] = mediaId;
-    
-    return imageUrl;
+
+    const endpoint = existingMedia
+      ? `${WORDPRESS_URL}/wp-json/wp/v2/media/${existingMedia.id}`
+      : `${WORDPRESS_URL}/wp-json/wp/v2/media`;
+
+    const action = existingMedia ? 'Replacing' : 'Uploading new';
+    console.log(`  ${action} media: ${fileName}`);
+
+    const response = await axios.post(endpoint, formData, {
+      auth: { username: USERNAME, password: APP_PASSWORD },
+      headers: { ...formData.getHeaders() }
+    });
+
+    console.log(`  ${existingMedia ? 'Replaced' : 'Uploaded'} image: ${fileName} -> ${response.data.source_url}`);
+
+    imageCache[resolvedPath] = { url: response.data.source_url, mediaId: response.data.id };
+
+    return response.data.source_url;
   } catch (error) {
     console.error(`  Error uploading image ${imagePath}:`, error.response?.data || error.message);
     // Return original path if upload fails
@@ -65666,7 +65638,8 @@ function processMarkdownLinks(content) {
 }
 
 /**
- * Add a link to the original GitHub source document at the end of the post content
+ * Add a link to the original GitHub source document at the beginning and
+ * end of the post content
  */
 function addGitHubSourceLink(content, filePath) {
   // Get the repository context from GitHub Actions
@@ -65713,7 +65686,6 @@ function createGutenbergMarkdownBlock(markdownContent) {
     breaks: true       // Convert \n in paragraphs into <br> (GFM-style)
   });
   
-  // Render markdown to HTML
   const htmlContent = md.render(markdownContent);
   
   // Create the block attributes object
@@ -65723,7 +65695,6 @@ function createGutenbergMarkdownBlock(markdownContent) {
     shikiTheme: "github-dark"
   };
   
-  // Convert attributes to JSON string for block comment
   const attributesJson = JSON.stringify(attributes);
   
   // Create the Gutenberg block comment format
@@ -65808,12 +65779,10 @@ function toTitleCase(str) {
     .map(word => {
       const upperWord = word.toUpperCase();
 
-      // Keep initialisms in all caps
       if (initialisms.has(upperWord)) {
         return upperWord;
       }
 
-      // Check for special cases
       if (special_cases[upperWord]) {
           return special_cases[upperWord]
       }
@@ -65839,23 +65808,18 @@ async function processMarkdownFile(filePath) {
 	return { success: true, slug: null, skipped: true };
     }
 
-    // Process images in the Markdown content
     console.log(`  Processing images...`);
     let processedContent = await processImages(content, filePath);
 
-    // Process relative markdown links
     console.log(`  Processing markdown links...`);
     processedContent = processMarkdownLinks(processedContent);
 
-    // Remove checkboxes
     console.log(`  Removing checkboxes...`);
     processedContent = removeCheckboxes(processedContent);
 
-    // Add link to source
     console.log(`  Adding link to source document...`);
     processedContent = addGitHubSourceLink(processedContent, filePath);
 
-    // Wrap Markdown in Gutenberg GFM block instead of converting to HTML
     const gutenbergContent = createGutenbergMarkdownBlock(processedContent);
     
     // Get post slug from frontmatter or filename
@@ -65889,13 +65853,11 @@ async function processMarkdownFile(filePath) {
     
     let postId;
     if (existingPost) {
-      // Update existing post
       console.log(`Updating post: ${postData.title} (ID: ${existingPost.id})`);
       const response = await wpClient.put(`/posts/${existingPost.id}`, postData);
       console.log(`✓ Updated: ${response.data.link}`);
       postId = response.data.id;
     } else {
-      // Create new post
       console.log(`Creating post: ${postData.title}`);
       const response = await wpClient.post('/posts', postData);
       console.log(`✓ Created: ${response.data.link}`);
@@ -65954,10 +65916,6 @@ async function getChangedMarkdownFiles() {
   }
 }
 
-
-/**
- * Main function
- */
 async function main() {
   console.log('Starting WordPress publishing process...\n');
   
@@ -66015,7 +65973,6 @@ async function main() {
   
 }
 
-// Run the script
 main().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);

@@ -44,9 +44,8 @@ const wpClient = axios.create({
 // Cache for category mapping
 let categoryCache = {};
 // Cache for uploaded images (to avoid re-uploading the same image)
+// Maps resolved path -> { url, mediaId }
 let imageCache = {};
-// Cache for media IDs
-let imageCacheIds = {};
 
 /**
  * Upload an image to WordPress media library
@@ -60,7 +59,7 @@ async function uploadImage(imagePath, baseDir) {
   // Check cache first
   if (imageCache[resolvedPath]) {
     console.log(`  Using cached image: ${imagePath}`);
-    return imageCache[resolvedPath];
+    return imageCache[resolvedPath].url;
   }
 
   try {
@@ -92,51 +91,24 @@ async function uploadImage(imagePath, baseDir) {
     
     const formData = new FormData();
     formData.append('file', imageBuffer, fileName);
-    
-    let response;
-    
-    if (existingMedia) {
-      // Replace existing media
-      console.log(`  Replacing existing media: ${fileName}`);
-      response = await axios.post(
-        `${WORDPRESS_URL}/wp-json/wp/v2/media/${existingMedia.id}`,
-        formData,
-        {
-          auth: {
-            username: USERNAME,
-            password: APP_PASSWORD
-          },
-          headers: {
-            ...formData.getHeaders()
-          }
-        }
-      );
-      console.log(`  Replaced image: ${fileName} -> ${response.data.source_url}`);
-    } else {
-      // Upload new media
-      response = await axios.post(
-        `${WORDPRESS_URL}/wp-json/wp/v2/media`,
-        formData,
-        {
-          auth: {
-            username: USERNAME,
-            password: APP_PASSWORD
-          },
-          headers: {
-            ...formData.getHeaders()
-          }
-        }
-      );
-      console.log(`  Uploaded new image: ${fileName} -> ${response.data.source_url}`);
-    }
-    
-    const imageUrl = response.data.source_url;
-    const mediaId = response.data.id;
-    
-    imageCache[resolvedPath] = imageUrl;
-    imageCacheIds[resolvedPath] = mediaId;
-    
-    return imageUrl;
+
+    const endpoint = existingMedia
+      ? `${WORDPRESS_URL}/wp-json/wp/v2/media/${existingMedia.id}`
+      : `${WORDPRESS_URL}/wp-json/wp/v2/media`;
+
+    const action = existingMedia ? 'Replacing' : 'Uploading new';
+    console.log(`  ${action} media: ${fileName}`);
+
+    const response = await axios.post(endpoint, formData, {
+      auth: { username: USERNAME, password: APP_PASSWORD },
+      headers: { ...formData.getHeaders() }
+    });
+
+    console.log(`  ${existingMedia ? 'Replaced' : 'Uploaded'} image: ${fileName} -> ${response.data.source_url}`);
+
+    imageCache[resolvedPath] = { url: response.data.source_url, mediaId: response.data.id };
+
+    return response.data.source_url;
   } catch (error) {
     console.error(`  Error uploading image ${imagePath}:`, error.response?.data || error.message);
     // Return original path if upload fails
