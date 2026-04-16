@@ -65804,8 +65804,8 @@ async function processMarkdownFile(filePath) {
     const fileContent = await fs$1.readFile(filePath, 'utf-8');
     const { data: frontmatter, content } = matter(fileContent);
 
-    if (frontmatter.skip-wordpress) {
-	console.log(`  Skipping (skip-wordpress: true in frontmatter)`);
+    if (frontmatter.nopublish) {
+	console.log(`  Skipping (nopublish: true in frontmatter)`);
 	return { success: true, slug: null, skipped: true };
     }
 
