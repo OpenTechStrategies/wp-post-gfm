@@ -9,7 +9,7 @@ import 'net';
 import require$$1 from 'tls';
 import events$1, { EventEmitter } from 'events';
 import require$$5$4 from 'assert';
-import util$8 from 'util';
+import util$8, { promisify } from 'util';
 import require$$0$2 from 'node:assert';
 import require$$0$4 from 'node:net';
 import require$$2 from 'node:http';
@@ -29,7 +29,7 @@ import require$$5$2 from 'node:async_hooks';
 import require$$1$4 from 'node:console';
 import require$$1$5 from 'node:dns';
 import require$$5$3 from 'string_decoder';
-import 'child_process';
+import { exec } from 'child_process';
 import 'timers';
 import fs$1 from 'fs/promises';
 import stream, { Readable } from 'stream';
@@ -65900,8 +65900,6 @@ async function getMarkdownFiles(dir) {
  * Get changed Markdown files from git diff
  */
 async function getChangedMarkdownFiles() {
-  const { exec } = require('child_process');
-  const { promisify } = require('util');
   const execAsync = promisify(exec);
   
   try {

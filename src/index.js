@@ -21,6 +21,8 @@ import axios from 'axios';
 import matter from 'gray-matter';
 import FormData from 'form-data';
 import MarkdownIt from 'markdown-it';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const POSTS_DIR = core.getInput('directory');
 const FORCE_PUBLISH = core.getInput('force_publish');
@@ -466,8 +468,6 @@ async function getMarkdownFiles(dir) {
  * Get changed Markdown files from git diff
  */
 async function getChangedMarkdownFiles() {
-  const { exec } = require('child_process');
-  const { promisify } = require('util');
   const execAsync = promisify(exec);
   
   try {
