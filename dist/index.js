@@ -65658,7 +65658,7 @@ function addGitHubSourceLink(content, filePath) {
     const githubUrl = `https://github.com/${repository}/blob/${sha}/${relativePath}`;
   const sourceLink = `*[View source on GitHub](${githubUrl})*\n\n`;
   
-    const disclaimer = `\n\n *This content was automatically generated from [GitHub](${githunUrl}). Any edits made on WordPress will be lost.*`;
+    const disclaimer = `\n\n *This content was automatically generated from [GitHub](${githubUrl}). Any edits made on WordPress will be lost.*`;
  
   return sourceLink + content + disclaimer;
 }
