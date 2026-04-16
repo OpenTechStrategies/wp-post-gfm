@@ -316,7 +316,7 @@ function getCategoriesFromPath(filePath) {
   const parts = relativePath.split(path.sep);
   
   // Remove the filename and return directory names as categories
-  return parts.slice(0, -1).filter(part => part !== '');
+  return parts.slice(0, -1).filter(part => part !== '' && part !== '..');
 }
 
 /**
