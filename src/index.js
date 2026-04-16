@@ -24,6 +24,7 @@ import MarkdownIt from 'markdown-it';
 
 const POSTS_DIR = core.getInput('directory');
 const FORCE_PUBLISH = core.getInput('force_publish');
+const EXTRA_FILES = core.getInput('extra_files');
 const DEFAULT_STATUS = core.getInput('default_status');
 const WORDPRESS_URL = process.env.WP_URL;
 const USERNAME = process.env.WP_USERNAME;
@@ -496,12 +497,17 @@ async function main() {
   // Determine which files to process
   let filesToProcess;
   
+  const extraFiles = EXTRA_FILES
+    ? EXTRA_FILES.split(',').map(f => f.trim()).filter(f => f.endsWith('.md'))
+    : [];
+
   if (FORCE_PUBLISH) {
     console.log('Force publish enabled - processing all Markdown files');
     filesToProcess = await getMarkdownFiles(POSTS_DIR);
+    filesToProcess = [...new Set([...filesToProcess, ...extraFiles])];
   } else {
     const changedFiles = await getChangedMarkdownFiles();
-    
+
     if (changedFiles && changedFiles.length > 0) {
       console.log('Processing changed files only:');
       changedFiles.forEach(file => console.log(`  - ${file}`));
@@ -509,6 +515,7 @@ async function main() {
     } else {
       console.log('No changed files detected or git diff unavailable - processing all files');
       filesToProcess = await getMarkdownFiles(POSTS_DIR);
+      filesToProcess = [...new Set([...filesToProcess, ...extraFiles])];
     }
   }
   

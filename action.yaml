@@ -9,6 +9,10 @@ inputs:
     description: 'Force republish all posts'
     required: false
     default: 'false'
+  extra_files:
+    description: 'Comma-separated list of additional .md file paths outside the base directory to include'
+    required: false
+    default: ''
   default_status:
     description: 'Add a default status for your posts. Can be overridden by frontmatter.'
     required: false
